@@ -1,7 +1,8 @@
-use mini_redis::{client, DEFAULT_PORT};
+use mini_redis::{clients::Client, DEFAULT_PORT};
 
 use bytes::Bytes;
 use clap::{Parser, Subcommand};
+use std::convert::Infallible;
 use std::num::ParseIntError;
 use std::str;
 use std::time::Duration;
@@ -28,7 +29,8 @@ struct Cli {
 enum Command {
     Ping {
         /// Message to ping
-        msg: Option<String>,
+        #[clap(value_parser = bytes_from_str)]
+        msg: Option<Bytes>,
     },
     /// Get the value of key.
     Get {
@@ -41,11 +43,11 @@ enum Command {
         key: String,
 
         /// Value to set.
-        #[clap(parse(from_str = bytes_from_str))]
+        #[clap(value_parser = bytes_from_str)]
         value: Bytes,
 
         /// Expire the value after specified amount of time
-        #[clap(parse(try_from_str = duration_from_ms_str))]
+        #[clap(value_parser = duration_from_ms_str)]
         expires: Option<Duration>,
     },
     ///  Publisher to send a message to a specific channel.
@@ -53,7 +55,7 @@ enum Command {
         /// Name of channel
         channel: String,
 
-        #[clap(parse(from_str = bytes_from_str))]
+        #[clap(value_parser = bytes_from_str)]
         /// Message to publish
         message: Bytes,
     },
@@ -85,7 +87,7 @@ async fn main() -> mini_redis::Result<()> {
     let addr = format!("{}:{}", cli.host, cli.port);
 
     // Establish a connection
-    let mut client = client::connect(&addr).await?;
+    let mut client = Client::connect(&addr).await?;
 
     // Process the requested command
     match cli.command {
@@ -125,7 +127,7 @@ async fn main() -> mini_redis::Result<()> {
             println!("OK");
         }
         Command::Publish { channel, message } => {
-            client.publish(&channel, message.into()).await?;
+            client.publish(&channel, message).await?;
             println!("Publish OK");
         }
         Command::Subscribe { channels } => {
@@ -152,6 +154,6 @@ fn duration_from_ms_str(src: &str) -> Result<Duration, ParseIntError> {
     Ok(Duration::from_millis(ms))
 }
 
-fn bytes_from_str(src: &str) -> Bytes {
-    Bytes::from(src.to_string())
+fn bytes_from_str(src: &str) -> Result<Bytes, Infallible> {
+    Ok(Bytes::from(src.to_string()))
 }

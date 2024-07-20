@@ -88,6 +88,7 @@ https://github.com/aws-observability/aws-otel-collector/blob/main/docs/developer
 
 `mini-redis` currently supports the following commands.
 
+* [PING](https://redis.io/commands/ping)
 * [GET](https://redis.io/commands/get)
 * [SET](https://redis.io/commands/set)
 * [PUBLISH](https://redis.io/commands/publish)
@@ -109,7 +110,7 @@ and spawns a new task per connection. It gracefully handles `accept` errors.
 
 ### Client library
 
-[`client.rs`](src/client.rs) shows how to model an asynchronous client. The
+[`client.rs`](src/clients/client.rs) shows how to model an asynchronous client. The
 various capabilities are exposed as `async` methods.
 
 ### State shared across sockets
@@ -175,7 +176,7 @@ asynchronous Rust patterns with Tokio.
 Commands or other features should only be added if doing so is useful to
 demonstrate a new pattern.
 
-Contributions should come with extensive comments targetted to new Tokio users.
+Contributions should come with extensive comments targeted to new Tokio users.
 
 Contributions that only focus on clarifying and improving comments are very
 welcome.
